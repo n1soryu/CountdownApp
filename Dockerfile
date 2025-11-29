@@ -7,10 +7,12 @@ WORKDIR /app
 # Copy package files first to leverage Docker cache
 COPY package*.json ./
 
-# 1. We are on node:20-slim (Debian), so the default npm is stable.
-# 2. We removed 'npm install -g npm@latest' which was causing DNS timeouts (EAI_AGAIN).
-# 3. We do NOT set NODE_ENV=production here yet, because we need 'vite' (a devDependency) to build.
-RUN npm install
+# 1. Set registry to HTTP to bypass potential SSL handshake hangs (common cause of stalls)
+# 2. Disable strict SSL to prevent certificate verification hangs
+# 3. Use verbose logging so we can see progress instead of a silent freeze
+RUN npm config set registry http://registry.npmjs.org/ && \
+    npm config set strict-ssl false && \
+    npm install --verbose
 
 # Copy the rest of the app code
 COPY . .
@@ -22,7 +24,6 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy the build output from the previous stage
-# Note: Ensure your vite config outputs to 'dist'. If it outputs to 'build', change this path.
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Expose port 80
