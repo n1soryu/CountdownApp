@@ -1,16 +1,15 @@
-# Stage 1: Build the Vite app
-FROM node:18-alpine AS builder
+# Stage 1: Build
+# CHANGED: Upgraded from node:18-alpine to node:20-alpine
+FROM node:20-alpine as builder
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm ci
-
+RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with nginx
+# Stage 2: Serve
 FROM nginx:alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
