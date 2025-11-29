@@ -7,11 +7,10 @@ WORKDIR /app
 # Copy package files first to leverage Docker cache
 COPY package*.json ./
 
-# 1. Update npm to the latest version to avoid bugs
-# 2. Use 'npm ci' if a lockfile exists for reliable builds, otherwise 'npm install'
-# 3. We do NOT set NODE_ENV=production here yet, because we need 'vite' (a devDependency) to build
-RUN npm install -g npm@latest && \
-    npm install
+# 1. We are on node:20-slim (Debian), so the default npm is stable.
+# 2. We removed 'npm install -g npm@latest' which was causing DNS timeouts (EAI_AGAIN).
+# 3. We do NOT set NODE_ENV=production here yet, because we need 'vite' (a devDependency) to build.
+RUN npm install
 
 # Copy the rest of the app code
 COPY . .
