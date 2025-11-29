@@ -7,13 +7,13 @@ WORKDIR /app
 # Copy package files first to leverage Docker cache
 COPY package*.json ./
 
-# 1. Set registry to HTTP to bypass SSL issues
-# 2. Disable strict SSL
-# 3. Force IPv4 (family=4) -> This fixes the EAI_AGAIN DNS error by stopping IPv6 lookups
-# 4. Increase network timeout/retries to be more patient with the connection
+# 1. registry=http: Bypass SSL handshake latency.
+# 2. strict-ssl=false: Prevent cert errors.
+# 3. dns-result-order=ipv4first: The CORRECT way to fix EAI_AGAIN/IPv6 errors in npm v10+.
+# 4. Retries: Handle temporary network blips.
 RUN npm config set registry http://registry.npmjs.org/ && \
     npm config set strict-ssl false && \
-    npm config set family 4 && \
+    npm config set dns-result-order ipv4first && \
     npm config set fetch-retries 5 && \
     npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
